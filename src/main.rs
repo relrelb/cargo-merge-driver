@@ -32,7 +32,7 @@ fn git(args: &[&str]) -> String {
         .args(args)
         .output()
         .expect("Failed to execute git");
-    String::from_utf8(output.stdout).unwrap()
+    String::from_utf8(output.stdout).unwrap().trim_end().into()
 }
 
 fn install_gitattributes(opts: Install, install: bool) -> Result<()> {
@@ -47,7 +47,8 @@ fn install_gitattributes(opts: Install, install: bool) -> Result<()> {
         let git_dir = git(&["rev-parse", "--git-dir"]);
         PathBuf::from(git_dir).join("info").join("attributes")
     };
-    let text = fs::read_to_string(&path)?;
+    println!("Updating {}...", path.to_str().unwrap());
+    let text = fs::read_to_string(&path).unwrap_or("".into());
     let mut file = File::create(path)?;
     for line in text.lines() {
         // TODO: Handle spaces.
