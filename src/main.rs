@@ -1,9 +1,9 @@
-use std::io::{Result, Write};
+use clap::Clap;
 use std::fs;
 use std::fs::File;
+use std::io::{Result, Write};
 use std::path::PathBuf;
-use std::process::{Command, exit};
-use clap::Clap;
+use std::process::{exit, Command};
 
 #[derive(Clap)]
 enum Subcommand {
@@ -63,16 +63,36 @@ fn install_gitattributes(opts: Install, install: bool) -> Result<()> {
 
 fn install(opts: Install) -> Result<()> {
     let global = if opts.global { "--global" } else { "--local" };
-    git(&["config", global, &format!("merge.{}.name", opts.name), "Automatically merge Cargo.lock files"]);
-    git(&["config", global, &format!("merge.{}.driver", opts.name), "cargo-merge-driver merge %O %A %B %P"]);
-    git(&["config", global, "--unset", &format!("merge.{}.recursive", opts.name)]);
+    git(&[
+        "config",
+        global,
+        &format!("merge.{}.name", opts.name),
+        "Automatically merge Cargo.lock files",
+    ]);
+    git(&[
+        "config",
+        global,
+        &format!("merge.{}.driver", opts.name),
+        "cargo-merge-driver merge %O %A %B %P",
+    ]);
+    git(&[
+        "config",
+        global,
+        "--unset",
+        &format!("merge.{}.recursive", opts.name),
+    ]);
     install_gitattributes(opts, true)?;
     Ok(())
 }
 
 fn uninstall(opts: Install) -> Result<()> {
     let global = if opts.global { "--global" } else { "--local" };
-    git(&["config", global, "--remove-section", &format!("merge.{}", opts.name)]);
+    git(&[
+        "config",
+        global,
+        "--remove-section",
+        &format!("merge.{}", opts.name),
+    ]);
     install_gitattributes(opts, false)?;
     Ok(())
 }
