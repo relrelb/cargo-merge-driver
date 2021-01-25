@@ -3,6 +3,7 @@ name = "cargo-merge-driver"
 version = "0.1.0"
 authors = ["relrelb <relrelbachar@gmail.com>"]
 edition = "2018"
+description = "Automatically merge Cargo.lock files"
 
 [dependencies]
 clap = "3.0.0-beta.2"
