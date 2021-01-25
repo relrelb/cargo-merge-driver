@@ -9,7 +9,7 @@ use std::process::{exit, Command};
 enum Subcommand {
     Install(Install),
     Uninstall(Install),
-    Merge,
+    Merge(Merge),
 }
 
 #[derive(Clap)]
@@ -19,6 +19,21 @@ struct Install {
 
     #[clap(long, default_value = "cargo-merge-driver")]
     name: String,
+}
+
+#[derive(Clap)]
+struct Merge {
+    #[clap(parse(from_os_str))]
+    ancestor: PathBuf,
+
+    #[clap(parse(from_os_str))]
+    current: PathBuf,
+
+    #[clap(parse(from_os_str))]
+    other: PathBuf,
+
+    #[clap(parse(from_os_str))]
+    placeholder: PathBuf,
 }
 
 #[derive(Clap)]
@@ -98,8 +113,20 @@ fn uninstall(opts: Install) -> Result<()> {
     Ok(())
 }
 
-fn merge(_opts: Opts) -> Result<()> {
-    println!("merge");
+fn merge(opts: Merge) -> Result<()> {
+    let output = git(&[
+        "merge-file",
+        "-p",
+        opts.current.to_str().unwrap(),
+        opts.ancestor.to_str().unwrap(),
+        opts.other.to_str().unwrap(),
+    ]);
+    fs::write(&opts.placeholder, output)?;
+    Command::new("cargo")
+        .arg("generate-lockfile")
+        .status()
+        .expect("Failed to execute cargo");
+    fs::copy(&opts.current, &opts.placeholder)?;
     Ok(())
 }
 
@@ -108,7 +135,7 @@ fn main() {
     let result = match opts.subcommand {
         Subcommand::Install(i) => install(i),
         Subcommand::Uninstall(i) => uninstall(i),
-        Subcommand::Merge => merge(opts),
+        Subcommand::Merge(m) => merge(m),
     };
     exit(match result {
         Ok(()) => 0,
