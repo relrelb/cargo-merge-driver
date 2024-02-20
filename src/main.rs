@@ -1,44 +1,37 @@
-use clap::Clap;
+use clap::Parser;
 use std::fs;
 use std::fs::File;
 use std::io::{Result, Write};
 use std::path::PathBuf;
 use std::process::{exit, Command};
 
-#[derive(Clap)]
+#[derive(Parser)]
 enum Subcommand {
     Install(Install),
     Uninstall(Install),
     Merge(Merge),
 }
 
-#[derive(Clap)]
+#[derive(Parser)]
 struct Install {
-    #[clap(short, long)]
+    #[arg(short, long)]
     global: bool,
 
-    #[clap(long, default_value = "cargo-merge-driver")]
+    #[arg(long, default_value = "cargo-merge-driver")]
     name: String,
 }
 
-#[derive(Clap)]
+#[derive(Parser)]
 struct Merge {
-    #[clap(parse(from_os_str))]
     ancestor: PathBuf,
-
-    #[clap(parse(from_os_str))]
     current: PathBuf,
-
-    #[clap(parse(from_os_str))]
     other: PathBuf,
-
-    #[clap(parse(from_os_str))]
     placeholder: PathBuf,
 }
 
-#[derive(Clap)]
+#[derive(Parser)]
 struct Opts {
-    #[clap(subcommand)]
+    #[command(subcommand)]
     subcommand: Subcommand,
 }
 

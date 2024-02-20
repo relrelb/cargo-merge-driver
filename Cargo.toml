@@ -6,5 +6,5 @@ edition = "2018"
 description = "Automatically merge Cargo.lock files"
 
 [dependencies]
-clap = "3.0.0-beta.2"
-dirs = "1.0.5"
+clap = { version = "4", features = ["derive"] }
+dirs = "5"
