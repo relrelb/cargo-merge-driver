@@ -1,45 +1,41 @@
-use clap::Clap;
+use clap::{Parser, Subcommand};
 use std::fs;
 use std::fs::File;
 use std::io::{Result, Write};
 use std::path::PathBuf;
 use std::process::{exit, Command};
 
-#[derive(Clap)]
-enum Subcommand {
+#[derive(Subcommand)]
+enum Subcmd {
     Install(Install),
     Uninstall(Install),
     Merge(Merge),
 }
 
-#[derive(Clap)]
+#[derive(Parser)]
 struct Install {
-    #[clap(short, long)]
+    #[arg(short, long)]
     global: bool,
 
-    #[clap(long, default_value = "cargo-merge-driver")]
+    #[arg(long, default_value = "cargo-merge-driver")]
     name: String,
 }
 
-#[derive(Clap)]
+#[derive(Parser)]
 struct Merge {
-    #[clap(parse(from_os_str))]
     ancestor: PathBuf,
 
-    #[clap(parse(from_os_str))]
     current: PathBuf,
 
-    #[clap(parse(from_os_str))]
     other: PathBuf,
 
-    #[clap(parse(from_os_str))]
     placeholder: PathBuf,
 }
 
-#[derive(Clap)]
+#[derive(Parser)]
 struct Opts {
-    #[clap(subcommand)]
-    subcommand: Subcommand,
+    #[command(subcommand)]
+    subcommand: Subcmd,
 }
 
 fn git(args: &[&str]) -> String {
@@ -133,12 +129,24 @@ fn merge(opts: Merge) -> Result<()> {
 fn main() {
     let opts = Opts::parse();
     let result = match opts.subcommand {
-        Subcommand::Install(i) => install(i),
-        Subcommand::Uninstall(i) => uninstall(i),
-        Subcommand::Merge(m) => merge(m),
+        Subcmd::Install(i) => install(i),
+        Subcmd::Uninstall(i) => uninstall(i),
+        Subcmd::Merge(m) => merge(m),
     };
     exit(match result {
         Ok(()) => 0,
         Err(_) => -1,
     });
+}
+
+#[cfg(test)]
+mod tests {
+    use clap::CommandFactory;
+
+    use crate::Opts;
+
+    #[test]
+    fn valid_command() {
+        Opts::command().debug_assert();
+    }
 }
